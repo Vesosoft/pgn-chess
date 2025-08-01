@@ -17,7 +17,42 @@
   </style>
 </head>
 <body>
-  <div id="board"></div>
+ <div id="board"></div>
+
+  <script>
+    const piecePlacement = [
+      ['bR','bN','bB','bQ','bK','bB','bN','bR'],
+      ['bP','bP','bP','bP','bP','bP','bP','bP'],
+      ['','','','','','','',''],
+      ['','','','','','','',''],
+      ['','','','','','','',''],
+      ['','','','','','','',''],
+      ['wP','wP','wP','wP','wP','wP','wP','wP'],
+      ['wR','wN','wB','wQ','wK','wB','wN','wR']
+    ];
+
+    const board = document.getElementById('board');
+    const basePath = '../img/';
+
+    for (let row = 0; row < 8; row++) {
+      for (let col = 0; col < 8; col++) {
+        const square = document.createElement('div');
+        square.classList.add('square');
+        square.classList.add((row + col) % 2 === 0 ? 'white' : 'black');
+
+        const piece = piecePlacement[row][col];
+        if (piece) {
+          const img = document.createElement('img');
+          img.src = `${basePath}${piece}.png`;
+          img.alt = piece;
+          square.appendChild(img);
+        }
+
+        board.appendChild(square);
+      }
+    }
+  </script>
+  
 
   <script src="../libs/chessboard-1.0.0.js"></script>
   <script>
