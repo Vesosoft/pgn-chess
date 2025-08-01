@@ -2,42 +2,28 @@
 <html lang="bg">
 <head>
   <meta charset="UTF-8" />
-  <title>Дъска (фрейм)</title>
+  <title>Тестова дъска</title>
+  <link rel="stylesheet" href="../libs/chessboard-1.0.0.css" />
   <style>
     body {
+      background: #000;
       margin: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      background: #121212;
+      padding: 0;
     }
     #board {
-      display: grid;
-      grid-template-columns: repeat(8, 60px);
-      grid-template-rows: repeat(8, 60px);
-      width: 480px;
-      height: 480px;
-    }
-    #board div {
-      width: 60px;
-      height: 60px;
+      width: 400px;
+      margin: 20px auto;
     }
   </style>
 </head>
 <body>
   <div id="board"></div>
 
-  <script src="../js/board.js"></script>
+  <script src="../libs/chessboard-1.0.0.js"></script>
   <script>
-    // Приемане на съобщения отвън
-    window.addEventListener("message", (event) => {
-      const msg = event.data;
-      if (msg.type === "loadFEN") {
-        loadFEN(msg.data);
-      } else if (msg.type === "loadPGN") {
-        loadPGN(msg.data);
-      }
+    const board = Chessboard('board', {
+      pieceTheme: '../img/{piece}.png',
+      position: 'start'
     });
   </script>
 </body>
