@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+  <meta charset="UTF-8" />
+  <style>
+    body {
+      background: #1e1e1e;
+      color: #eee;
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      align-items: center;
+      height: 100%;
+    }
+    button {
+      padding: 8px 12px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <button onclick="sendFEN()">Зареди FEN</button>
+  <button onclick="sendPGN()">Зареди PGN</button>
+
+  <script>
+    function sendFEN() {
+      parent.postMessage({ type: "loadFEN", data: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1" }, "*");
+    }
+
+    function sendPGN() {
+      parent.postMessage({ type: "loadPGN", data: "1. e4 e5 2. Nf3 Nc6 3. Bb5 a6" }, "*");
+    }
+  </script>
+</body>
+</html>
