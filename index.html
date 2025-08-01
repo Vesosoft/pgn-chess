@@ -1,1 +1,68 @@
-index
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+  <meta charset="UTF-8">
+  <title>Veso PGN Viewer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="../libs/chessboard-1.0.0.css">
+  <style>
+    body {
+      background: #121212;
+      color: #eee;
+      font-family: sans-serif;
+      text-align: center;
+      padding: 1em;
+    }
+    #board {
+      width: 320px;
+      margin: 20px auto;
+    }
+    button {
+      padding: 0.5em 1em;
+      font-size: 1em;
+      margin-top: 1em;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>Veso PGN Viewer</h1>
+  <div id="board"></div>
+  <button onclick="loadPGN()">Зареди партията</button>
+
+  <script src="../libs/chess.min.js"></script>
+  <script src="../libs/chessboard-1.0.0.js"></script>
+  <script>
+    const board = Chessboard('board', {
+      position: 'start',
+      showNotation: true,
+      draggable: false
+    });
+
+    function loadPGN() {
+      const game = new Chess();
+      const pgn = `[Event "Demo"]
+[Site "?"]
+[Date "2025.07.31"]
+[Round "-"]
+[White "Вес"]
+[Black "Противник"]
+[Result "*"]
+
+1.e4 e5 2.Nf3 Nc6 3.Bb5 a6 4.Ba4 Nf6 5.O-O Be7 6.Re1 b5 7.Bb3 d6 8.c3 O-O 9.h3 *
+`;
+
+      game.load_pgn(pgn);
+      const moves = game.history();
+      let i = 0;
+      board.position(game.fen());
+
+      const interval = setInterval(() => {
+        if (i >= moves.length) return clearInterval(interval);
+        game.move(moves[i++]);
+        board.position(game.fen());
+      }, 1000);
+    }
+  </script>
+</body>
+  </html>
