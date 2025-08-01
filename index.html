@@ -5,33 +5,33 @@
   <title>Veso PGN Viewer</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
-    body {
+    html, body {
       margin: 0;
-      display: grid;
-      grid-template-rows: auto 1fr;
-      height: 100vh;
-      background: #121212;
-    }
-    iframe {
-      border: none;
-      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      background-color: #000;
     }
     #controlsFrame {
       height: 60px;
+      border: none;
     }
     #boardFrame {
-      height: calc(100vh - 60px);
+      flex: 1;
+      border: none;
     }
   </style>
 </head>
 <body>
-  <iframe src="html/controls.html" id="controlsFrame"></iframe>
-  <iframe src="html/board-frame.html" id="boardFrame"></iframe>
+  <iframe id="controlsFrame" src="html/controls.html"></iframe>
+  <iframe id="boardFrame" src="html/board-frame.html"></iframe>
 
   <script>
     window.addEventListener("message", (event) => {
       const boardFrame = document.getElementById("boardFrame");
-      boardFrame.contentWindow.postMessage(event.data, "*");
+      if (boardFrame && boardFrame.contentWindow) {
+        boardFrame.contentWindow.postMessage(event.data, "*");
+      }
     });
   </script>
 </body>
