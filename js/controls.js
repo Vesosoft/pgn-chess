@@ -17,3 +17,16 @@ export function createControls(container, onAction) {
     container.appendChild(btn);
   });
 }
+document.getElementById('btn-prev').addEventListener('click', () => {
+  if (typeof prevMove === 'function') prevMove();
+});
+
+document.getElementById('btn-next').addEventListener('click', () => {
+  if (typeof nextMove === 'function') nextMove();
+});
+
+document.getElementById('btn-flip').addEventListener('click', () => {
+  if (typeof board !== 'undefined' && typeof board.flip === 'function') {
+    board.flip();
+  }
+});
