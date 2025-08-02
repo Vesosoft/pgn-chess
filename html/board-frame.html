@@ -70,6 +70,15 @@
       }
     }
   </script>
-  
+  <script>
+  window.addEventListener("message", (event) => {
+    const { type, data } = event.data;
+    if (type === "loadFEN") {
+      loadFEN(data);
+    } else if (type === "loadPGN") {
+      loadPGN(data);
+    }
+  });
+  </script>
 </body>
 </html>
