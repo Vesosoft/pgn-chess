@@ -2,42 +2,42 @@
 <html lang="bg">
 <head>
   <meta charset="UTF-8" />
-  <style>
-    body {
-      background: #1e1e1e;
-      color: #eee;
-      display: flex;
-      gap: 10px;
-      justify-content: center;
-      align-items: center;
-      height: 100%;
-    }
-    button {
-      padding: 8px 12px;
-      font-size: 16px;
-    }
-  </style>
 </head>
 <body>
   <button onclick="sendFEN()">Зареди FEN</button>
+  <input type="file" id="fenFile" accept=".fen,.txt" style="display:none" />
+
   <button onclick="sendPGN()">Зареди PGN</button>
-  <button id="btn-prev">⬅️</button>
-<button id="btn-next">➡️</button>
-<button id="btn-flip">🔄</button>
+  <input type="file" id="pgnFile" accept=".pgn,.txt" style="display:none" />
 
   <script>
     function sendFEN() {
-      parent.postMessage({ type: "loadFEN", data: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1" }, "*");
+      document.getElementById("fenFile").click();
     }
 
+    document.getElementById("fenFile").addEventListener("change", (event) => {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        parent.postMessage({ type: "loadFEN", data: e.target.result.trim() }, "*");
+      };
+      reader.readAsText(file);
+    });
+
     function sendPGN() {
-      parent.postMessage({ type: "loadPGN", data: "1. e4 e5 2. Nf3 Nc6 3. Bb5 a6" }, "*");
+      document.getElementById("pgnFile").click();
     }
+
+    document.getElementById("pgnFile").addEventListener("change", (event) => {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        parent.postMessage({ type: "loadPGN", data: e.target.result.trim() }, "*");
+      };
+      reader.readAsText(file);
+    });
   </script>
-  <div id="remote-controls">
-  <button id="btn-prev">⬅️</button>
-  <button id="btn-next">➡️</button>
-  <button id="btn-flip">🔄</button>
-  </div>
 </body>
 </html>
