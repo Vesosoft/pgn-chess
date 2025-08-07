@@ -1,55 +1,33 @@
 <!DOCTYPE html>
 <html lang="bg">
 <head>
-  <meta charset="UTF-8" />
-  <style>
-    body {
-      background: #1e1e1e;
-      color: #eee;
-      display: flex;
-      gap: 10px;
-      justify-content: center;
-      align-items: center;
-      height: 100%;
-    }
-    button {
-      font-size: 16px;
-    }
-  </style>
+  <meta charset="UTF-8">
+  <title>Бутони за управление</title>
 </head>
 <body>
-  <button onclick="sendFEN()">Зареди FEN</button>
-  <button onclick="sendPGN()">Зареди PGN</button>
+  <button onclick="loadFEN()">Зареди FEN</button>
+  <button onclick="loadPGN()">Зареди PGN</button>
+  <button onclick="prev()">⬅️</button>
+  <button onclick="next()">➡️</button>
 
   <script>
-    function sendFEN() {
-      parent.postMessage({
-        type: "loadFEN",
-        data: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
-      }, "*");
+    function loadFEN() {
+      const fen = "r1bqkbnr/pppp1ppp/2n5/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 2 3";
+      parent.postMessage({ type: "loadFEN", data: fen }, "*");
     }
 
-    function sendPGN() {
-      parent.postMessage({
-        type: "loadPGN",
-        data: "1. e4 e5 2. Nf3 Nc6 3. Bb5 a6"
-      }, "*");
+    function loadPGN() {
+      const pgn = "1. e4 e5 2. Nf3 Nc6 3. Bb5 a6";
+      parent.postMessage({ type: "loadPGN", data: pgn }, "*");
     }
-  </script>
-  <script>
-  function sendFEN() {
-    parent.postMessage({ type: "loadFEN", data: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1" }, "*");
-  }
 
-  function sendPGN() {
-    parent.postMessage({ type: "loadPGN", data: "1. e4 e5 2. Nf3 Nc6 3. Bb5 a6" }, "*");
-  }
+    function next() {
+      parent.postMessage({ type: "next" }, "*");
+    }
 
-  document.getElementById("btn-prev").onclick = () =>
-    parent.postMessage({ type: "prev" }, "*");
-
-  document.getElementById("btn-next").onclick = () =>
-    parent.postMessage({ type: "next" }, "*");
+    function prev() {
+      parent.postMessage({ type: "prev" }, "*");
+    }
   </script>
 </body>
 </html>
