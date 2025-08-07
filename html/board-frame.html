@@ -86,5 +86,19 @@
       }
     });
   </script>
+  <script>
+  window.addEventListener("message", (event) => {
+  console.log("Получено съобщение:", event.data);
+
+  const msg = event.data;
+  if (msg.type === "loadFEN") {
+    console.log("Зареждаме FEN:", msg.data);
+    loadFEN(msg.data);
+  } else if (msg.type === "loadPGN") {
+    console.log("Зареждаме PGN:", msg.data);
+    loadPGN(msg.data);
+  }
+});
+  </script>
 </body>
 </html>
