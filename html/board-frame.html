@@ -66,19 +66,27 @@
 
   renderBoard(game.fen());
 
-  window.addEventListener("message", (event) => {
-    const msg = event.data;
-    if (msg.type === "loadPGN") {
-      console.log("Получено PGN съобщение:", msg.data);
-      game = new Chess();
-      const success = game.load_pgn(msg.data);
-      if (!success) {
-        alert("Невалиден PGN!");
-        return;
-      }
-      renderBoard(game.fen());
+window.addEventListener("message", (event) => {
+  const msg = event.data;
+  if (msg.type === "loadPGN") {
+    console.log("Получено PGN съобщение:", msg.data);
+    game = new Chess();
+    const success = game.load_pgn(msg.data);
+    if (!success) {
+      alert("Невалиден PGN!");
+      return;
     }
-  });
+
+    // Превърти до последната позиция
+    const moves = game.history();
+    game.reset();
+    for (const move of moves) {
+      game.move(move);
+    }
+
+    renderBoard(game.fen());
+  }
+});
 </script>
 </body>
 </html>
