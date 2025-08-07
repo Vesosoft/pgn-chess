@@ -2,23 +2,24 @@
 <html lang="bg">
 <head>
   <meta charset="UTF-8" />
-  <title>Veso PGN Viewer</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PGN Viewer</title>
   <style>
     html, body {
       margin: 0;
+      padding: 0;
       height: 100%;
       display: flex;
       flex-direction: column;
       background-color: #000;
     }
+    iframe {
+      border: none;
+    }
     #controlsFrame {
       height: 60px;
-      border: none;
     }
     #boardFrame {
       flex: 1;
-      border: none;
     }
   </style>
 </head>
@@ -27,6 +28,7 @@
   <iframe id="boardFrame" src="html/board-frame.html"></iframe>
 
   <script>
+    // Препраща съобщенията от controls към board-frame
     window.addEventListener("message", (event) => {
       const boardFrame = document.getElementById("boardFrame");
       if (boardFrame && boardFrame.contentWindow) {
