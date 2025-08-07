@@ -22,6 +22,32 @@ function createEmptyBoard() {
     boardDiv.appendChild(square);
   }
 }
+
+function loadFEN(fen) {
+  createEmptyBoard();
+
+  const parts = fen.split(" ");
+  const rows = parts[0].split("/");
+  const squares = document.getElementById("board").children;
+
+  let index = 0;
+
+  for (let row of rows) {
+    for (let char of row) {
+      if (!isNaN(char)) {
+        index += parseInt(char);
+      } else {
+        const img = document.createElement("img");
+        img.src = `../img/${pieceMap[char]}.png`;
+        img.style.width = "100%";
+        img.style.height = "100%";
+        squares[index].appendChild(img);
+        index++;
+      }
+    }
+  }
+}
+
 function loadPGN(pgnText) {
   const game = new Chess(); // използва chess.js
   const success = game.load_pgn(pgnText);
@@ -33,6 +59,4 @@ function loadPGN(pgnText) {
 
   const fen = game.fen(); // вземаме крайната позиция от PGN-а
   loadFEN(fen); // зареждаме тази позиция на дъската
-}
-  }
 }
