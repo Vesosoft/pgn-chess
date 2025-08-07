@@ -1,9 +1,17 @@
 <!DOCTYPE html>
 <html lang="bg">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Шахматна дъска</title>
+  <script src="../libs/chess.min.js"></script>
   <style>
+    body {
+      background: #222;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100%;
+    }
     #board {
       display: grid;
       grid-template-columns: repeat(8, 60px);
@@ -14,52 +22,51 @@
     .square {
       width: 60px;
       height: 60px;
+      box-sizing: border-box;
+      position: relative;
     }
-    .white { background: #f0d9b5; }
-    .black { background: #b58863; }
+    .white { background-color: #eee; }
+    .black { background-color: #444; }
+    .square img {
+      width: 100%;
+      height: 100%;
+    }
   </style>
 </head>
 <body>
   <div id="board"></div>
 
-  <script src="../libs/chess.min.js"></script>
   <script>
     const pieceMap = {
       p: 'bP', r: 'bR', n: 'bN', b: 'bB', q: 'bQ', k: 'bK',
       P: 'wP', R: 'wR', N: 'wN', B: 'wB', Q: 'wQ', K: 'wK'
     };
 
-    let game = new Chess();
-    let history = [];
-    let currentMove = 0;
+    const board = document.getElementById("board");
+    const basePath = "../img/";
 
     function createEmptyBoard() {
-      const boardDiv = document.getElementById("board");
-      boardDiv.innerHTML = "";
-      for (let i = 0; i < 64; i++) {
-        const square = document.createElement("div");
-        square.classList.add("square");
-        square.classList.add((Math.floor(i / 8) + i) % 2 === 0 ? "white" : "black");
-        boardDiv.appendChild(square);
+      board.innerHTML = "";
+      for (let row = 0; row < 8; row++) {
+        for (let col = 0; col < 8; col++) {
+          const square = document.createElement("div");
+          square.classList.add("square");
+          square.classList.add((row + col) % 2 === 0 ? "white" : "black");
+          board.appendChild(square);
+        }
       }
     }
 
-    function loadFEN(fen) {
-      createEmptyBoard();
-      const parts = fen.split(" ");
-      const rows = parts[0].split("/");
-      const squares = document.getElementById("board").children;
+    function renderPosition(fenPosition) {
+      const squares = board.children;
       let index = 0;
-      for (let row of rows) {
-        for (let char of row) {
+      for (const row of fenPosition.split("/")) {
+        for (const char of row) {
           if (!isNaN(char)) {
             index += parseInt(char);
           } else {
             const img = document.createElement("img");
-            img.src = `../img/${pieceMap[char]}.png`;
-            img.alt = char;
-            img.style.width = "100%";
-            img.style.height = "100%";
+            img.src = basePath + pieceMap[char] + ".png";
             squares[index].appendChild(img);
             index++;
           }
@@ -67,38 +74,32 @@
       }
     }
 
+    function loadFEN(fen) {
+      const position = fen.split(" ")[0];
+      createEmptyBoard();
+      renderPosition(position);
+    }
+
+    let game;
+    let history = [];
+    let currentMove = 0;
+
     function updateBoard() {
-      game.reset();
-      for (let i = 0; i < currentMove; i++) {
-        game.move(history[i]);
-      }
-      loadFEN(game.fen());
+      const fen = game.fen().split(" ")[0];
+      createEmptyBoard();
+      renderPosition(fen);
     }
 
     function loadPGN(pgnText) {
       game = new Chess();
-      const success = game.load_pgn(pgnText);
-      if (!success) {
+      const ok = game.load_pgn(pgnText);
+      if (!ok) {
         alert("Невалиден PGN!");
         return;
       }
       history = game.history({ verbose: true });
-      currentMove = history.length; // Показваме крайната позиция
+      currentMove = history.length;
       updateBoard();
-    }
-
-    function nextMove() {
-      if (currentMove < history.length) {
-        currentMove++;
-        updateBoard();
-      }
-    }
-
-    function prevMove() {
-      if (currentMove > 0) {
-        currentMove--;
-        updateBoard();
-      }
     }
 
     window.addEventListener("message", (event) => {
@@ -107,13 +108,8 @@
         loadFEN(msg.data);
       } else if (msg.type === "loadPGN") {
         loadPGN(msg.data);
-      } else if (msg.type === "next") {
-        nextMove();
-      } else if (msg.type === "prev") {
-        prevMove();
       }
     });
-    createEmptyBoard(); // Показва празна дъска при зареждане
   </script>
 </body>
 </html>
