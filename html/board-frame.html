@@ -71,5 +71,22 @@
 
     // Получаване на съобщения от controls
 </script>
+  <script>
+  window.addEventListener("message", (event) => {
+    const msg = event.data;
+
+    if (msg.type === "loadPGN") {
+      const game = new Chess();
+      const success = game.load_pgn(msg.data);
+
+      if (!success) {
+        alert("Невалиден PGN!");
+        return;
+      }
+
+      renderBoard(game.fen()); // Крайна позиция
+    }
+  });
+  </script>
 </body>
 </html>
