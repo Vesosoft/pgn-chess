@@ -36,5 +36,20 @@
       }, "*");
     }
   </script>
+  <script>
+  function sendFEN() {
+    parent.postMessage({ type: "loadFEN", data: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1" }, "*");
+  }
+
+  function sendPGN() {
+    parent.postMessage({ type: "loadPGN", data: "1. e4 e5 2. Nf3 Nc6 3. Bb5 a6" }, "*");
+  }
+
+  document.getElementById("btn-prev").onclick = () =>
+    parent.postMessage({ type: "prev" }, "*");
+
+  document.getElementById("btn-next").onclick = () =>
+    parent.postMessage({ type: "next" }, "*");
+  </script>
 </body>
 </html>
