@@ -4,37 +4,42 @@
   <meta charset="UTF-8" />
   <style>
     body {
-      background: #1e1e1e;
+      background: #111;
       color: #eee;
       display: flex;
+      flex-direction: column;
+      padding: 10px;
       gap: 10px;
-      justify-content: center;
-      align-items: center;
-      height: 100%;
+      font-family: sans-serif;
+    }
+    textarea {
+      width: 100%;
+      height: 60px;
+      font-size: 14px;
     }
     button {
-      padding: 4px 8px;
-      font-size: 14px;
+      padding: 6px 10px;
     }
   </style>
 </head>
 <body>
+  <label>FEN:</label>
+  <textarea id="fenInput">rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1</textarea>
   <button onclick="sendFEN()">Зареди FEN</button>
+
+  <label>PGN:</label>
+  <textarea id="pgnInput">1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 4. Ba4 Nf6</textarea>
   <button onclick="sendPGN()">Зареди PGN</button>
 
   <script>
     function sendFEN() {
-      parent.postMessage({
-        type: "loadFEN",
-        data: "rnbqkbnr/pppppppp/8/8/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2"
-      }, "*");
+      const fen = document.getElementById("fenInput").value;
+      parent.postMessage({ type: "loadFEN", data: fen }, "*");
     }
 
     function sendPGN() {
-      parent.postMessage({
-        type: "loadPGN",
-        data: "1. e4 e5 2. Nf3 Nc6 3. Bb5 a6"
-      }, "*");
+      const pgn = document.getElementById("pgnInput").value;
+      parent.postMessage({ type: "loadPGN", data: pgn }, "*");
     }
   </script>
 </body>
