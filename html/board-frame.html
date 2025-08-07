@@ -1,48 +1,37 @@
 <!DOCTYPE html>
 <html lang="bg">
 <head>
-  <meta charset="UTF-8" />
-  <title>Дъска</title>
+  <meta charset="UTF-8">
+  <title>Шахматна дъска</title>
   <style>
-    body {
-      background: #222;
-      color: #fff;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-    }
     #board {
       display: grid;
       grid-template-columns: repeat(8, 60px);
       grid-template-rows: repeat(8, 60px);
-      border: 2px solid #555;
-      margin-top: 20px;
+      width: 480px;
+      height: 480px;
     }
     .square {
       width: 60px;
       height: 60px;
-      box-sizing: border-box;
-      position: relative;
     }
-    .white { background-color: #eee; }
-    .black { background-color: #555; }
-    .square img {
-      width: 100%;
-      height: 100%;
-    }
+    .white { background: #f0d9b5; }
+    .black { background: #b58863; }
   </style>
-  <script src="../libs/chess.min.js"></script>
 </head>
 <body>
   <div id="board"></div>
 
+  <script src="../libs/chess.min.js"></script>
   <script>
-    // 🎯 Глобални map и функции
     const pieceMap = {
       p: 'bP', r: 'bR', n: 'bN', b: 'bB', q: 'bQ', k: 'bK',
       P: 'wP', R: 'wR', N: 'wN', B: 'wB', Q: 'wQ', K: 'wK'
     };
+
+    let game = new Chess();
+    let history = [];
+    let currentMove = 0;
 
     function createEmptyBoard() {
       const boardDiv = document.getElementById("board");
@@ -55,7 +44,7 @@
       }
     }
 
-    window.loadFEN = function (fen) {
+    function loadFEN(fen) {
       createEmptyBoard();
       const parts = fen.split(" ");
       const rows = parts[0].split("/");
@@ -68,120 +57,62 @@
           } else {
             const img = document.createElement("img");
             img.src = `../img/${pieceMap[char]}.png`;
-            img.alt = pieceMap[char];
+            img.alt = char;
+            img.style.width = "100%";
+            img.style.height = "100%";
             squares[index].appendChild(img);
             index++;
           }
         }
       }
-    };
+    }
 
-    window.loadPGN = function (pgnText) {
-      // (тук можеш да добавиш парсване на PGN – сега просто зарежда начална позиция)
-      const fenStart = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-      window.loadFEN(fenStart);
-    };
+    function updateBoard() {
+      game.reset();
+      for (let i = 0; i < currentMove; i++) {
+        game.move(history[i]);
+      }
+      loadFEN(game.fen());
+    }
 
-    // 🎯 Глобален слушател за съобщения от родителя
+    function loadPGN(pgnText) {
+      game = new Chess();
+      const success = game.load_pgn(pgnText);
+      if (!success) {
+        alert("Невалиден PGN!");
+        return;
+      }
+      history = game.history({ verbose: true });
+      currentMove = history.length; // Показваме крайната позиция
+      updateBoard();
+    }
+
+    function nextMove() {
+      if (currentMove < history.length) {
+        currentMove++;
+        updateBoard();
+      }
+    }
+
+    function prevMove() {
+      if (currentMove > 0) {
+        currentMove--;
+        updateBoard();
+      }
+    }
+
     window.addEventListener("message", (event) => {
       const msg = event.data;
       if (msg.type === "loadFEN") {
-        window.loadFEN(msg.data);
+        loadFEN(msg.data);
       } else if (msg.type === "loadPGN") {
-        window.loadPGN(msg.data);
+        loadPGN(msg.data);
+      } else if (msg.type === "next") {
+        nextMove();
+      } else if (msg.type === "prev") {
+        prevMove();
       }
     });
-  </script>
-  <script>
-  const pieceMap = {
-    p: 'bP', r: 'bR', n: 'bN', b: 'bB', q: 'bQ', k: 'bK',
-    P: 'wP', R: 'wR', N: 'wN', B: 'wB', Q: 'wQ', K: 'wK'
-  };
-
-  let game = new Chess();
-  let currentMove = 0;
-  let history = [];
-
-  function createEmptyBoard() {
-    const boardDiv = document.getElementById("board");
-    boardDiv.innerHTML = "";
-    for (let i = 0; i < 64; i++) {
-      const square = document.createElement("div");
-      square.classList.add("square");
-      square.classList.add((Math.floor(i / 8) + i) % 2 === 0 ? "white" : "black");
-      boardDiv.appendChild(square);
-    }
-  }
-
-  function loadFEN(fen) {
-    createEmptyBoard();
-    const parts = fen.split(" ");
-    const rows = parts[0].split("/");
-    const squares = document.getElementById("board").children;
-    let index = 0;
-    for (let row of rows) {
-      for (let char of row) {
-        if (!isNaN(char)) {
-          index += parseInt(char);
-        } else {
-          const img = document.createElement("img");
-          img.src = `../img/${pieceMap[char]}.png`;
-          img.alt = char;
-          img.style.width = "100%";
-          img.style.height = "100%";
-          squares[index].appendChild(img);
-          index++;
-        }
-      }
-    }
-  }
-
-  function updateBoard() {
-    game.reset();
-    for (let i = 0; i < currentMove; i++) {
-      game.move(history[i]);
-    }
-    loadFEN(game.fen());
-  }
-
-  function loadPGN(pgnText) {
-    game = new Chess();
-    if (!game.load_pgn(pgnText)) {
-      alert("Невалиден PGN");
-      return;
-    }
-    history = game.history({ verbose: true });
-    currentMove = history.length; // ПОКАЖИ КРАЙНА позиция
-    updateBoard();
-  }
-
-  function nextMove() {
-    if (currentMove < history.length) {
-      currentMove++;
-      updateBoard();
-    }
-  }
-
-  function prevMove() {
-    if (currentMove > 0) {
-      currentMove--;
-      updateBoard();
-    }
-  }
-
-  // Получаване на съобщения от controls.html
-  window.addEventListener("message", (event) => {
-    const msg = event.data;
-    if (msg.type === "loadFEN") {
-      loadFEN(msg.data);
-    } else if (msg.type === "loadPGN") {
-      loadPGN(msg.data);
-    } else if (msg.type === "next") {
-      nextMove();
-    } else if (msg.type === "prev") {
-      prevMove();
-    }
-  });
   </script>
 </body>
 </html>
