@@ -63,28 +63,13 @@
           boardEl.appendChild(square);
         }
       });
+      </script>
     }
 
     // Покажи началната позиция
-    renderBoard(game.fen());
+    <script>renderBoard(game.fen());</script>
 
     // Получаване на съобщения от controls
-    window.addEventListener("message", (event) => {
-      const msg = event.data;
-      if (msg.type === "loadFEN") {
-        game = new Chess();
-        game.load(msg.data);
-        renderBoard(game.fen());
-      } else if (msg.type === "loadPGN") {
-        game = new Chess();
-        const success = game.load_pgn(msg.data);
-        if (!success) {
-          alert("Невалиден PGN!");
-        } else {
-          renderBoard(game.fen()); // Показваме крайната позиция от партията
-        }
-      }
-    });
-  </script>
+
 </body>
 </html>
