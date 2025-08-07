@@ -2,35 +2,96 @@
 <html lang="bg">
 <head>
   <meta charset="UTF-8" />
-  <title>PGN Viewer</title>
+  <script src="../libs/chess.min.js"></script>
   <style>
-    html, body {
-      margin: 0;
-      height: 100%;
+    body {
+      background: #000;
       display: flex;
-      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
     }
-    iframe {
-      border: none;
+    #board {
+      display: grid;
+      grid-template-columns: repeat(8, 60px);
+      grid-template-rows: repeat(8, 60px);
+      width: 480px;
+      height: 480px;
+      border: 2px solid #888;
     }
-    #controlsFrame {
-      height: 200px;
+    .square {
+      width: 60px;
+      height: 60px;
     }
-    #boardFrame {
-      flex: 1;
+    .white { background: #eee; }
+    .black { background: #555; }
+    .square img {
+      width: 100%;
+      height: 100%;
     }
   </style>
 </head>
 <body>
-  <iframe id="controlsFrame" src="html/controls.html"></iframe>
-  <iframe id="boardFrame" src="html/board-frame.html"></iframe>
+  <div id="board"></div>
 
-  <script>
-    // Препращаме съобщенията от controls към board
-    window.addEventListener("message", (event) => {
-      const boardFrame = document.getElementById("boardFrame");
-      boardFrame.contentWindow.postMessage(event.data, "*");
+<script>
+  const boardEl = document.getElementById("board");
+  const pieceMap = {
+    p: 'bP', r: 'bR', n: 'bN', b: 'bB', q: 'bQ', k: 'bK',
+    P: 'wP', R: 'wR', N: 'wN', B: 'wB', Q: 'wQ', K: 'wK'
+  };
+
+  let game = new Chess();
+
+  function renderBoard(fen) {
+    boardEl.innerHTML = "";
+    const rows = fen.split(" ")[0].split("/");
+    rows.forEach((row, rIdx) => {
+      let c = 0;
+      for (let ch of row) {
+        const square = document.createElement("div");
+        square.className = "square " + ((rIdx + c) % 2 === 0 ? "white" : "black");
+        if (!isNaN(ch)) {
+          c += parseInt(ch);
+        } else {
+          const piece = pieceMap[ch];
+          const img = document.createElement("img");
+          img.src = `../img/${piece}.png`;
+          square.appendChild(img);
+          c++;
+        }
+        boardEl.appendChild(square);
+      }
     });
-  </script>
+  }
+
+  // Първоначална позиция
+  renderBoard(game.fen());
+
+  // Слушаме съобщенията от controls.html
+  window.addEventListener("message", (event) => {
+    const msg = event.data;
+    if (msg.type === "loadPGN") {
+      console.log("Получено PGN съобщение:", msg.data);
+
+      // Конвертиране от дълга нотация (e2-e4, Nb1-c3) в стандартна (e4, Nc3)
+      let cleanedPGN = msg.data
+        // За фигурите (K, Q, R, B, N) с или без уточнение на колона/ред
+        .replace(/\b([KQRNB]?[a-h]?[1-8]?)-([a-h][1-8])/g, "$1$2")
+        // За пешките
+        .replace(/\b([a-h][1-8])\-([a-h][1-8])/g, "$2");
+
+      game = new Chess();
+      const success = game.load_pgn(cleanedPGN);
+
+      if (!success) {
+        alert("Невалиден PGN!");
+        return;
+      }
+
+      renderBoard(game.fen());
+    }
+  });
+</script>
 </body>
 </html>
