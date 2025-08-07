@@ -12,22 +12,31 @@
       gap: 10px;
       font-family: sans-serif;
     }
+
+    label {
+      font-weight: bold;
+    }
+
     textarea {
       width: 100%;
       height: 60px;
       font-size: 14px;
     }
+
     button {
       padding: 6px 10px;
+      font-size: 14px;
+      margin-bottom: 10px;
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
-  <label>FEN:</label>
+  <label for="fenInput">FEN:</label>
   <textarea id="fenInput">rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1</textarea>
   <button onclick="sendFEN()">Зареди FEN</button>
 
-  <label>PGN:</label>
+  <label for="pgnInput">PGN:</label>
   <textarea id="pgnInput">1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 4. Ba4 Nf6</textarea>
   <button onclick="sendPGN()">Зареди PGN</button>
 
