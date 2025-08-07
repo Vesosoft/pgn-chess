@@ -32,6 +32,7 @@
       height: 100%;
     }
   </style>
+  <script src="../libs/chess.min.js"></script>
 </head>
 <body>
   <div id="board"></div>
@@ -90,6 +91,97 @@
         window.loadPGN(msg.data);
       }
     });
+  </script>
+  <script>
+  const pieceMap = {
+    p: 'bP', r: 'bR', n: 'bN', b: 'bB', q: 'bQ', k: 'bK',
+    P: 'wP', R: 'wR', N: 'wN', B: 'wB', Q: 'wQ', K: 'wK'
+  };
+
+  let game = new Chess();
+  let currentMove = 0;
+  let history = [];
+
+  function createEmptyBoard() {
+    const boardDiv = document.getElementById("board");
+    boardDiv.innerHTML = "";
+    for (let i = 0; i < 64; i++) {
+      const square = document.createElement("div");
+      square.classList.add("square");
+      square.classList.add((Math.floor(i / 8) + i) % 2 === 0 ? "white" : "black");
+      boardDiv.appendChild(square);
+    }
+  }
+
+  function loadFEN(fen) {
+    createEmptyBoard();
+    const parts = fen.split(" ");
+    const rows = parts[0].split("/");
+    const squares = document.getElementById("board").children;
+    let index = 0;
+    for (let row of rows) {
+      for (let char of row) {
+        if (!isNaN(char)) {
+          index += parseInt(char);
+        } else {
+          const img = document.createElement("img");
+          img.src = `../img/${pieceMap[char]}.png`;
+          img.alt = char;
+          img.style.width = "100%";
+          img.style.height = "100%";
+          squares[index].appendChild(img);
+          index++;
+        }
+      }
+    }
+  }
+
+  function updateBoard() {
+    game.reset();
+    for (let i = 0; i < currentMove; i++) {
+      game.move(history[i]);
+    }
+    loadFEN(game.fen());
+  }
+
+  function loadPGN(pgnText) {
+    game = new Chess();
+    if (!game.load_pgn(pgnText)) {
+      alert("Невалиден PGN");
+      return;
+    }
+    history = game.history({ verbose: true });
+    currentMove = history.length; // ПОКАЖИ КРАЙНА позиция
+    updateBoard();
+  }
+
+  function nextMove() {
+    if (currentMove < history.length) {
+      currentMove++;
+      updateBoard();
+    }
+  }
+
+  function prevMove() {
+    if (currentMove > 0) {
+      currentMove--;
+      updateBoard();
+    }
+  }
+
+  // Получаване на съобщения от controls.html
+  window.addEventListener("message", (event) => {
+    const msg = event.data;
+    if (msg.type === "loadFEN") {
+      loadFEN(msg.data);
+    } else if (msg.type === "loadPGN") {
+      loadPGN(msg.data);
+    } else if (msg.type === "next") {
+      nextMove();
+    } else if (msg.type === "prev") {
+      prevMove();
+    }
+  });
   </script>
 </body>
 </html>
