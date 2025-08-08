@@ -7,9 +7,13 @@
     body {
       background: #000;
       display: flex;
-      justify-content: center;
+      flex-direction: column;
       align-items: center;
-      height: 100vh;
+      justify-content: flex-start;
+      padding-top: 20px;
+      gap: 10px;
+      color: #fff;
+      font-family: sans-serif;
     }
     #board {
       display: grid;
@@ -29,10 +33,24 @@
       width: 100%;
       height: 100%;
     }
+    #controls {
+      display: flex;
+      gap: 10px;
+    }
+    button {
+      padding: 8px 16px;
+      font-size: 14px;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
   <div id="board"></div>
+  <div id="controls">
+    <button id="prevMove">← Назад</button>
+    <button id="nextMove">Напред →</button>
+  </div>
+
 <script>
   const boardEl = document.getElementById("board");
   const pieceMap = {
@@ -41,6 +59,8 @@
   };
 
   let game = new Chess();
+  let moves = [];      // Списък с ходове в SAN
+  let currentIndex = 0; // Текуща позиция
 
   function renderBoard(fen) {
     boardEl.innerHTML = "";
@@ -64,29 +84,59 @@
     });
   }
 
+  // Първоначална позиция
   renderBoard(game.fen());
 
-window.addEventListener("message", (event) => {
-  const msg = event.data;
-  if (msg.type === "loadPGN") {
-    console.log("Получено PGN съобщение:", msg.data);
-    game = new Chess();
-    const success = game.load_pgn(msg.data);
-    if (!success) {
-      alert("Невалиден PGN!");
-      return;
+  // Навигация ход по ход
+  document.getElementById("prevMove").addEventListener("click", () => {
+    if (currentIndex > 0) {
+      currentIndex--;
+      game.reset();
+      for (let i = 0; i < currentIndex; i++) {
+        game.move(moves[i]);
+      }
+      renderBoard(game.fen());
     }
+  });
 
-    // Превърти до последната позиция
-    const moves = game.history();
-    game.reset();
-    for (const move of moves) {
-      game.move(move);
+  document.getElementById("nextMove").addEventListener("click", () => {
+    if (currentIndex < moves.length) {
+      game.move(moves[currentIndex]);
+      currentIndex++;
+      renderBoard(game.fen());
     }
+  });
 
-    renderBoard(game.fen());
-  }
-});
+  // Слушаме PGN от controls.html
+  window.addEventListener("message", (event) => {
+    const msg = event.data;
+    if (msg.type === "loadPGN") {
+      console.log("Получено PGN съобщение:", msg.data);
+
+      // Конвертиране от дълга нотация
+      let cleanedPGN = msg.data
+        .replace(/\b([KQRNB]?[a-h]?[1-8]?)-([a-h][1-8])/g, "$1$2")
+        .replace(/\b([a-h][1-8])\-([a-h][1-8])/g, "$2");
+
+      // Зареждане на партията
+      game = new Chess();
+      const success = game.load_pgn(cleanedPGN);
+
+      if (!success) {
+        alert("Невалиден PGN!");
+        return;
+      }
+
+      // Взимаме списъка с ходове
+      moves = game.history();
+      console.log("Ходове:", moves);
+
+      // Започваме от началната позиция
+      game.reset();
+      currentIndex = 0;
+      renderBoard(game.fen());
+    }
+  });
 </script>
 </body>
 </html>
