@@ -2,44 +2,54 @@
 <html lang="bg">
 <head>
 <meta charset="UTF-8">
-<title>Контроли</title>
+<title>Controls</title>
 <style>
     body {
-        margin: 0;
+        font-family: Arial, sans-serif;
         padding: 10px;
-        font-family: sans-serif;
+        background: #fafafa;
+    }
+    textarea {
+        width: 100%;
+        height: 200px;
+        margin-bottom: 10px;
     }
     button {
-        padding: 10px;
-        margin: 5px 0;
+        padding: 8px 15px;
+        margin-right: 5px;
         cursor: pointer;
     }
 </style>
 </head>
 <body>
 
-<h3>Контроли</h3>
-<textarea id="pgnInput" style="width: 100%; height: 200px;"></textarea>
+<h3>Въведи PGN:</h3>
+<textarea id="pgnInput"></textarea>
 <br>
-<button id="sendPGN">Зареди в дъската</button>
+<button id="loadBtn">Зареди в дъската</button>
 
 <script>
-    document.getElementById("sendPGN").addEventListener("click", function() {
-        let pgn = document.getElementById("pgnInput").value.trim();
+    const pgnInput = document.getElementById('pgnInput');
+    const loadBtn = document.getElementById('loadBtn');
 
-        console.log("[controls] Оригинален PGN:\n" + pgn);
+    // Натискане на бутона за зареждане на PGN в дъската
+    loadBtn.addEventListener('click', function() {
+        const pgn = pgnInput.value.trim();
+        if (!pgn) {
+            alert("Моля, въведете PGN текст.");
+            return;
+        }
 
-        // Премахваме тиретата от ходовете
-        let fixedPGN = pgn.replace(/([a-h][1-8])-([a-h][1-8])/g, '$1$2');
-        console.log("[controls] Fixed PGN:\n" + fixedPGN);
+        console.log("[controls] Изпращам PGN към parent:", pgn);
+        window.parent.postMessage({ type: "loadPGN", data: pgn }, "*");
+    });
 
-        // Изпращаме към родителя (index.html)
-        window.parent.postMessage({
-            type: "sendPGNToBoard",
-            data: fixedPGN
-        }, "*");
-
-        console.log("[controls] Изпратих PGN към parent");
+    // Приемаме PGN отвън (например от index.html) и го показваме в textarea
+    window.addEventListener("message", function(event) {
+        if (event.data.type === "setPGN") {
+            pgnInput.value = event.data.data;
+            console.log("[controls] Получих PGN отвън и го показвам в textarea");
+        }
     });
 </script>
 
