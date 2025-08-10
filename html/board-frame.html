@@ -1,66 +1,49 @@
 <!DOCTYPE html>
 <html lang="bg">
 <head>
-<meta charset="UTF-8">
-<title>Chess Board</title>
-<link rel="stylesheet" href="libs/chessboard-1.0.0.css">
-<style>
-    body {
-        margin: 0;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        background: #f0f0f0;
-        height: 100vh;
-    }
-    #board {
-        width: 500px;
-    }
-</style>
+    <meta charset="UTF-8">
+    <title>Шахматна дъска</title>
+    <link rel="stylesheet" href="libs/chessboard-1.0.0.css">
+    <style>
+        body { margin: 0; padding: 0; }
+        #board { width: 500px; margin: auto; }
+    </style>
+    <script src="libs/chess.js"></script>
+    <script src="libs/chessboard-1.0.0.js"></script>
 </head>
 <body>
+    <div id="board"></div>
 
-<div id="board"></div>
+    <script>
+        let board = null;
+        const game = new Chess();
 
-<script src="libs/chess.js"></script>
-<script src="libs/chessboard-1.0.0.js"></script>
-<script>
-    console.log("[board-frame] Стартиране на board-frame.html");
-
-    let board = null;
-    let game = new Chess();
-
-    // Инициализация на празна дъска
-    function renderBoardFromFEN(fen) {
-        console.log("[board-frame] Рендирам дъската от FEN:", fen);
-        board = Chessboard('board', {
-            position: fen,
-            draggable: false
-        });
-    }
-
-    // Първоначално начална позиция
-    renderBoardFromFEN(game.fen());
-
-    // Слушаме за PGN от index.html
-    window.addEventListener("message", function(event) {
-        console.log("[board-frame] Получих съобщение:", event.data);
-
-        if (event.data.type === "loadPGN") {
-            let pgnText = event.data.data;
-            console.log("[board-frame] Опитвам да заредя PGN...", pgnText);
-
-            let success = game.load_pgn(pgnText);
-            console.log("[board-frame] Успех при зареждане?", success);
-
-            if (success) {
-                renderBoardFromFEN(game.fen());
-            } else {
-                console.warn("[board-frame] Неуспешно зареждане на PGN!");
-            }
+        function renderBoard(fen) {
+            console.log("[board-frame] Рендирам дъската от FEN:", fen);
+            board.position(fen, false);
         }
-    });
-</script>
 
+        function loadPGN(pgn) {
+            console.log("[board-frame] Опитвам да заредя PGN...");
+            const success = game.load_pgn(pgn);
+            console.log("[board-frame] Успех при зареждане?", success);
+            renderBoard(game.fen());
+        }
+
+        window.addEventListener('message', (event) => {
+            console.log("[board-frame] Получих съобщение:", event.data);
+            if (event.data.type === 'loadPGN') {
+                loadPGN(event.data.data);
+            }
+        });
+
+        // инициализация на дъската
+        document.addEventListener("DOMContentLoaded", () => {
+            board = Chessboard('board', {
+                position: 'start',
+                draggable: false
+            });
+        });
+    </script>
 </body>
 </html>
