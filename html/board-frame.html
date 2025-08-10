@@ -1,93 +1,67 @@
 <!DOCTYPE html>
 <html lang="bg">
 <head>
-  <meta charset="UTF-8" />
-  <script src="../libs/chess.min.js"></script>
-  <style>
+<meta charset="UTF-8">
+<title>PGN Chess Board</title>
+<link rel="stylesheet" href="libs/chessboard-1.0.0.min.css">
+<style>
     body {
-      background: #000;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
+        margin: 0;
+        padding: 0;
     }
     #board {
-      display: grid;
-      grid-template-columns: repeat(8, 60px);
-      grid-template-rows: repeat(8, 60px);
-      width: 480px;
-      height: 480px;
-      border: 2px solid #888;
+        width: 100%;
+        max-width: 480px;
+        margin: auto;
     }
-    .square {
-      width: 60px;
-      height: 60px;
-    }
-    .white { background: #eee; }
-    .black { background: #555; }
-    .square img {
-      width: 100%;
-      height: 100%;
-    }
-  </style>
+</style>
 </head>
 <body>
-  <div id="board"></div>
 
+<div id="board"></div>
+
+<script src="libs/chess.min.js"></script>
+<script src="libs/chessboard-1.0.0.min.js"></script>
 <script>
-  const boardEl = document.getElementById("board");
-  const pieceMap = {
-    p: 'bP', r: 'bR', n: 'bN', b: 'bB', q: 'bQ', k: 'bK',
-    P: 'wP', R: 'wR', N: 'wN', B: 'wB', Q: 'wQ', K: 'wK'
-  };
+    console.log("[board-frame] Зареждам дъската...");
 
-  let game = new Chess();
+    let board = null;
+    let game = new Chess();
 
-  function renderBoard(fen) {
-    console.log("[board-frame] Рендирам дъската от FEN:", fen);
-    boardEl.innerHTML = "";
-    const rows = fen.split(" ")[0].split("/");
-    rows.forEach((row, rIdx) => {
-      let c = 0;
-      for (let ch of row) {
-        const square = document.createElement("div");
-        square.className = "square " + ((rIdx + c) % 2 === 0 ? "white" : "black");
-        if (!isNaN(ch)) {
-          c += parseInt(ch);
-        } else {
-          const piece = pieceMap[ch];
-          if (piece) {
-            const img = document.createElement("img");
-            img.src = `../img/${piece}.png`;
-            square.appendChild(img);
-          }
-          c++;
-        }
-        boardEl.appendChild(square);
-      }
-    });
-  }
-
-  // Първоначално изобразяване
-  renderBoard(game.fen());
-
-  window.addEventListener("message", (event) => {
-    const msg = event.data;
-    console.log("[board-frame] Получих съобщение:", msg);
-
-    if (msg.type === "loadPGN") {
-      console.log("[board-frame] Опитвам да заредя PGN...");
-      game = new Chess();
-      const success = game.load_pgn(msg.data);
-      console.log("[board-frame] Успех при зареждане?", success);
-
-      if (!success) {
-        alert("Невалиден PGN!");
-        return;
-      }
-      renderBoard(game.fen());
+    function renderBoardFromFEN(fen) {
+        console.log("[board-frame] Рендирам дъската от FEN:", fen);
+        board.position(fen);
     }
-  });
+
+    board = Chessboard('board', {
+        position: 'start'
+    });
+
+    // Слушаме за съобщения от родителя (index.html)
+    window.addEventListener("message", function(event) {
+        console.log("[board-frame] Получих съобщение:", event.data);
+
+        if (event.data.type === "loadPGN") {
+            let pgnText = event.data.data;
+            console.log("[board-frame] Оригинален PGN:\n" + pgnText);
+
+            // Премахваме тиретата между ходовете
+            let fixedPGN = pgnText.replace(/([a-h][1-8])-([a-h][1-8])/g, '$1$2');
+            console.log("[board-frame] Fixed PGN:\n" + fixedPGN);
+
+            let success = game.load_pgn(fixedPGN);
+            console.log("[board-frame] Успех при зареждане?", success);
+            console.log("[board-frame] FEN след зареждане:", game.fen());
+
+            if (success) {
+                renderBoardFromFEN(game.fen());
+            } else {
+                console.warn("[board-frame] PGN не беше зареден успешно!");
+            }
+        }
+    });
+
 </script>
+
 </body>
 </html>
