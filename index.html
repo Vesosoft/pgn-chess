@@ -1,36 +1,45 @@
 <!DOCTYPE html>
 <html lang="bg">
 <head>
-  <meta charset="UTF-8" />
-  <title>PGN Viewer</title>
-  <style>
-    html, body {
-      margin: 0;
-      height: 100%;
-      display: flex;
-      flex-direction: column;
+<meta charset="UTF-8">
+<title>PGN Chess Viewer</title>
+<style>
+    body {
+        margin: 0;
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        height: 100vh;
     }
     iframe {
-      border: none;
+        width: 100%;
+        height: 100%;
+        border: none;
     }
-    #controlsFrame {
-      height: 200px;
-    }
-    #boardFrame {
-      flex: 1;
-    }
-  </style>
+</style>
 </head>
 <body>
-  <iframe id="controlsFrame" src="html/controls.html"></iframe>
-  <iframe id="boardFrame" src="html/board-frame.html"></iframe>
 
-  <script>
-    window.addEventListener("message", (event) => {
-      console.log("[index] Препращам съобщение към board-frame:", event.data);
-      const boardFrame = document.getElementById("boardFrame");
-      boardFrame.contentWindow.postMessage(event.data, "*");
+<!-- Лява колона – дъската -->
+<iframe id="boardFrame" src="board-frame.html"></iframe>
+
+<!-- Дясна колона – контролите -->
+<iframe id="controlsFrame" src="controls.html"></iframe>
+
+<script>
+    console.log("[index] Стартиране на основния скрипт");
+
+    window.addEventListener("message", function(event) {
+        console.log("[index] Получено съобщение:", event.data);
+
+        if (event.data.type === "sendPGNToBoard") {
+            console.log("[index] Препращам PGN към board-frame");
+            document.getElementById("boardFrame").contentWindow.postMessage({
+                type: "loadPGN",
+                data: event.data.data
+            }, "*");
+        }
     });
-  </script>
+</script>
+
 </body>
 </html>
