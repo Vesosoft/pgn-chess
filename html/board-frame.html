@@ -2,47 +2,14 @@
 <html lang="bg">
 <head>
   <meta charset="UTF-8" />
-
-  <!-- Chess.js с кеш-бъст и fallback -->
-  <script>
-    (function(){
-      const version = Date.now();
-      const script = document.createElement('script');
-      script.src = `../libs/chess.min.js?v=${version}`;
-      script.onerror = function() {
-        console.warn('Локалният chess.min.js не зареди, пробвам CDN...');
-        const fallback = document.createElement('script');
-        fallback.src = 'https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.13.4/chess.min.js';
-        document.head.appendChild(fallback);
-      };
-      document.head.appendChild(script);
-    })();
-  </script>
-
-  <!-- Stockfish с кеш-бъст и fallback -->
-  <script>
-    (function(){
-      const version = Date.now();
-      const script = document.createElement('script');
-      script.src = `../libs/stockfish.js?v=${version}`;
-      script.onerror = function() {
-        console.warn('Локалният stockfish.js не зареди, пробвам CDN...');
-        const fallback = document.createElement('script');
-        fallback.src = 'https://cdn.jsdelivr.net/gh/niklasf/stockfish.js/stockfish.js';
-        document.head.appendChild(fallback);
-      };
-      document.head.appendChild(script);
-    })();
-  </script>
-
+  <script src="../libs/chess.min.js"></script>
   <style>
     body {
       background: #000;
       display: flex;
-      flex-direction: column;
+      justify-content: center;
       align-items: center;
       height: 100vh;
-      color: white;
     }
     #board {
       display: grid;
@@ -51,7 +18,6 @@
       width: 480px;
       height: 480px;
       border: 2px solid #888;
-      margin-top: 20px;
     }
     .square {
       width: 60px;
@@ -63,112 +29,65 @@
       width: 100%;
       height: 100%;
     }
-    #analysis {
-      margin-top: 10px;
-      font-size: 18px;
-    }
   </style>
 </head>
 <body>
   <div id="board"></div>
-  <div id="analysis">Анализът ще се появи тук</div>
 
-  <script>
-    const boardEl = document.getElementById("board");
-    const analysisEl = document.getElementById("analysis");
+<script>
+  const boardEl = document.getElementById("board");
+  const pieceMap = {
+    p: 'bP', r: 'bR', n: 'bN', b: 'bB', q: 'bQ', k: 'bK',
+    P: 'wP', R: 'wR', N: 'wN', B: 'wB', Q: 'wQ', K: 'wK'
+  };
 
-    const pieceMap = {
-      p: 'bP', r: 'bR', n: 'bN', b: 'bB', q: 'bQ', k: 'bK',
-      P: 'wP', R: 'wR', N: 'wN', B: 'wB', Q: 'wQ', K: 'wK'
-    };
+  let game = new Chess();
 
-    let game;
-    let engine;
-
-    function renderBoard(fen) {
-      boardEl.innerHTML = "";
-      const rows = fen.split(" ")[0].split("/");
-      rows.forEach((row, rIdx) => {
-        let c = 0;
-        for (let ch of row) {
-          const square = document.createElement("div");
-          square.className = "square " + ((rIdx + c) % 2 === 0 ? "white" : "black");
-          if (!isNaN(ch)) {
-            c += parseInt(ch);
-          } else {
-            const piece = pieceMap[ch];
+  function renderBoard(fen) {
+    console.log("[board-frame] Рендирам дъската от FEN:", fen);
+    boardEl.innerHTML = "";
+    const rows = fen.split(" ")[0].split("/");
+    rows.forEach((row, rIdx) => {
+      let c = 0;
+      for (let ch of row) {
+        const square = document.createElement("div");
+        square.className = "square " + ((rIdx + c) % 2 === 0 ? "white" : "black");
+        if (!isNaN(ch)) {
+          c += parseInt(ch);
+        } else {
+          const piece = pieceMap[ch];
+          if (piece) {
             const img = document.createElement("img");
             img.src = `../img/${piece}.png`;
             square.appendChild(img);
-            c++;
           }
-          boardEl.appendChild(square);
+          c++;
         }
-      });
-    }
-
-    function initEngine() {
-      try {
-        engine = Stockfish();
-        engine.onmessage = function(event) {
-          const line = event.data || event;
-          if (typeof line === "string" && line.includes("bestmove")) {
-            const bestMove = line.split(" ")[1];
-            analysisEl.textContent = "Най-добър ход: " + bestMove;
-          }
-          if (typeof line === "string" && line.includes("score")) {
-            const scoreMatch = line.match(/score (cp|mate) (-?\d+)/);
-            if (scoreMatch) {
-              if (scoreMatch[1] === "cp") {
-                analysisEl.textContent += " | Оценка: " + (scoreMatch[2] / 100).toFixed(2);
-              } else if (scoreMatch[1] === "mate") {
-                analysisEl.textContent += " | Мат след " + scoreMatch[2] + " хода";
-              }
-            }
-          }
-        };
-      } catch (err) {
-        analysisEl.textContent = "Stockfish не можа да се стартира.";
+        boardEl.appendChild(square);
       }
-    }
+    });
+  }
 
-    function analyzePosition() {
-      if (!engine || !game) {
-        analysisEl.textContent = "Няма позиция за анализ.";
+  // Първоначално изобразяване
+  renderBoard(game.fen());
+
+  window.addEventListener("message", (event) => {
+    const msg = event.data;
+    console.log("[board-frame] Получих съобщение:", msg);
+
+    if (msg.type === "loadPGN") {
+      console.log("[board-frame] Опитвам да заредя PGN...");
+      game = new Chess();
+      const success = game.load_pgn(msg.data);
+      console.log("[board-frame] Успех при зареждане?", success);
+
+      if (!success) {
+        alert("Невалиден PGN!");
         return;
       }
-      engine.postMessage("uci");
-      engine.postMessage("position fen " + game.fen());
-      engine.postMessage("go depth 15");
+      renderBoard(game.fen());
     }
-
-    window.addEventListener('load', () => {
-      if (typeof Chess === 'function') {
-        game = new Chess();
-        renderBoard(game.fen());
-      } else {
-        console.error('chess.min.js не е зареден!');
-      }
-      if (typeof Stockfish === 'function') {
-        initEngine();
-      }
-    });
-
-    window.addEventListener("message", (event) => {
-      const msg = event.data;
-      if (msg.type === "loadPGN") {
-        game = new Chess();
-        const success = game.load_pgn(msg.data);
-        if (!success) {
-          alert("Невалиден PGN!");
-          return;
-        }
-        renderBoard(game.fen());
-      }
-      if (msg.type === "analyzePosition") {
-        analyzePosition();
-      }
-    });
-  </script>
+  });
+</script>
 </body>
 </html>
