@@ -9,14 +9,12 @@
       height: 100%;
       display: flex;
       flex-direction: column;
-      background: #000;
     }
     iframe {
       border: none;
-      width: 100%;
     }
     #controlsFrame {
-      height: 120px;
+      height: 200px;
     }
     #boardFrame {
       flex: 1;
@@ -28,8 +26,8 @@
   <iframe id="boardFrame" src="html/board-frame.html"></iframe>
 
   <script>
-    // Препращаме съобщенията от controls към board
     window.addEventListener("message", (event) => {
+      console.log("[index] Препращам съобщение към board-frame:", event.data);
       const boardFrame = document.getElementById("boardFrame");
       boardFrame.contentWindow.postMessage(event.data, "*");
     });
