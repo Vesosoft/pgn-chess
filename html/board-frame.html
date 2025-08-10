@@ -2,17 +2,19 @@
 <html lang="bg">
 <head>
 <meta charset="UTF-8">
-<title>PGN Chess Board</title>
+<title>Chess Board</title>
 <link rel="stylesheet" href="libs/chessboard-1.0.0.css">
 <style>
     body {
         margin: 0;
-        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: #f0f0f0;
+        height: 100vh;
     }
     #board {
-        width: 100%;
-        max-width: 480px;
-        margin: auto;
+        width: 500px;
     }
 </style>
 </head>
@@ -21,46 +23,43 @@
 <div id="board"></div>
 
 <script src="libs/chess.js"></script>
-<script src="libs/chessboard-1.0.0js"></script>
+<script src="libs/chessboard-1.0.0.js"></script>
 <script>
-    console.log("[board-frame] Зареждам дъската...");
+    console.log("[board-frame] Стартиране на board-frame.html");
 
     let board = null;
     let game = new Chess();
 
+    // Инициализация на празна дъска
     function renderBoardFromFEN(fen) {
         console.log("[board-frame] Рендирам дъската от FEN:", fen);
-        board.position(fen);
+        board = Chessboard('board', {
+            position: fen,
+            draggable: false
+        });
     }
 
-    board = Chessboard('board', {
-        position: 'start'
-    });
+    // Първоначално начална позиция
+    renderBoardFromFEN(game.fen());
 
-    // Слушаме за съобщения от родителя (index.html)
+    // Слушаме за PGN от index.html
     window.addEventListener("message", function(event) {
         console.log("[board-frame] Получих съобщение:", event.data);
 
         if (event.data.type === "loadPGN") {
             let pgnText = event.data.data;
-            console.log("[board-frame] Оригинален PGN:\n" + pgnText);
+            console.log("[board-frame] Опитвам да заредя PGN...", pgnText);
 
-            // Премахваме тиретата между ходовете
-            let fixedPGN = pgnText.replace(/([a-h][1-8])-([a-h][1-8])/g, '$1$2');
-            console.log("[board-frame] Fixed PGN:\n" + fixedPGN);
-
-            let success = game.load_pgn(fixedPGN);
+            let success = game.load_pgn(pgnText);
             console.log("[board-frame] Успех при зареждане?", success);
-            console.log("[board-frame] FEN след зареждане:", game.fen());
 
             if (success) {
                 renderBoardFromFEN(game.fen());
             } else {
-                console.warn("[board-frame] PGN не беше зареден успешно!");
+                console.warn("[board-frame] Неуспешно зареждане на PGN!");
             }
         }
     });
-
 </script>
 
 </body>
